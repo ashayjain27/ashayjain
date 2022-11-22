@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+        xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+        xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+        xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+        xmlns:flowable="http://flowable.org/bpmn"
+        typeLanguage="http://www.w3.org/2001/XMLSchema"
+        expressionLanguage="http://www.w3.org/1999/XPath"
+        targetNamespace="http://www.flowable.org/processdef">
+    <process id="paymentreview"
+             name="A simple process for paymentreview." isExecutable="true">
+        <startEvent id="start" />
+        <sequenceFlow sourceRef="start" targetRef="reviewpayment" />
+        <userTask id="reviewpayment" name="Review the submitted payment"
+                  flowable:candidateGroups="eventmanager" />
+        <sequenceFlow sourceRef="reviewpayment" targetRef="decision" />
+        <exclusiveGateway id="decision" />
+        <sequenceFlow sourceRef="decision" targetRef="certificateApproved">
+            <conditionExpression xsi:type="tFormalExpression">
+                <![CDATA[${approved}]]>
+            </conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow sourceRef="decision" targetRef="certificateReject">
+            <conditionExpression xsi:type="tFormalExpression">
+                <![CDATA[${!approved}]]>
+            </conditionExpression>
+        </sequenceFlow>
+        <serviceTask id="certificateApproved" name="Publish the certificate."
+                     flowable:class="com.allstate.poc.service.UserEventCertificate" />
+        <sequenceFlow sourceRef="certificateApproved" targetRef="end" />
+        <serviceTask id="certificateReject" name="Send out rejection email"
+                     flowable:class="com.allstate.poc.service.RejectedCerticate" />
+        <sequenceFlow sourceRef="certificateReject" targetRef="end" />
+        <endEvent id="end" />
+    </process>
+</definitions>
